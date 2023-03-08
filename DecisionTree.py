@@ -43,7 +43,32 @@ class DecisionTree(object):
 
         for index in range(n_cols):
             X_curr = X[:, index]
+            # threshold = X_curr.mean()
+            threshold = np.percentile(X_curr, 50)
+            df = np.concatenate((X, y.reshape(1, -1).T), axis = 1)
+            # Crear la partición del dataset dependiendo del threshold
+            df_left = np.array([row for row in df if row[index] <= threshold])
+            df_right = np.array([row for row in df if row[index] > threshold])
 
+            if len(df_left) > 0 and len(df_right) > 0:
+                # Obtener valor de la variable objetivo
+                y = df[:, -1]
+                y_left = df_left[:, -1]
+                y_right = df_right[:, -1]
+
+                gain = self.information_gain(y, y_right, y_left)
+                if gain > best_info_gain:
+                    best_split = {
+                        "feature_index": index,
+                        "threshold": threshold,
+                        "df_left": df_left,
+                        "df_right": df_right,
+                        "gain": gain
+                    }
+                    best_info_gain = gain
+
+
+            '''
             for threshold in np.unique(X_curr):
                 df = np.concatenate((X, y.reshape(1, -1).T), axis = 1)
                 # Crear la partición del dataset dependiendo del threshold
@@ -66,6 +91,7 @@ class DecisionTree(object):
                             "gain": gain
                         }
                         best_info_gain = gain
+            '''
 
         return best_split
 

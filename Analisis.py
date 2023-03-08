@@ -20,6 +20,12 @@ def data_cleaning():
     
     cuantitativas= df.drop(['blueFirstBlood','gameId', 'blueWins'], axis=1)
     
+
+    a=df[(df['blueFirstBlood'] == 1) & (df['blueWins'] == 1)].shape[0]
+
+
+
+    #print("Victorias del equipo azul cuando hacen FirstBlood",a/df.shape[0])
     
     for column in cuantitativas.columns:
         #print("Analisis de la columna: ", column)
@@ -65,7 +71,10 @@ def data_cleaning():
     #Aun se pueden quitar más 
     variables_sifnicativas = df.drop(['gameId','redGoldDiff','redExperienceDiff','redGoldPerMin','blueGoldPerMin',
                                       'redCSPerMin','blueCSPerMin','blueAssists','redAssists','blueDeaths',
-                                      'redDeaths','redGoldPerMin', 'blueGoldPerMin'
+                                      'redDeaths','blueFirstBlood',
+                                      'redEliteMonsters','blueEliteMonsters','blueDragons','redDragons',
+                                      'redTotalMinionsKilled','blueTotalMinionsKilled','redAvgLevel','blueAvgLevel'
+                                
                                     ], axis=1)
     """
     Tras el analisis de correlación de las variables, pudimos observar que hay muchas varaibles
@@ -80,4 +89,4 @@ def data_cleaning():
     
     return variables_sifnicativas
     
-    
+
