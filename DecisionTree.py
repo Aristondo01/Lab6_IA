@@ -1,0 +1,99 @@
+import numpy as np
+from Nodo import Nodo
+
+class DecisionTree(object):
+    def __init__(self, min_samples = 2, max_depth = 5):
+        self.min_samples = min_samples,
+        self.max_depth = max_depth
+        self.root = None
+
+    def build_tree(self, X, y, depth = 0):
+        n_rows, n_cols = X.shape
+        
+        columns = X.columns
+        if n_rows >= self.min_samples and depth <= self.max_depth:
+            best = self.best_split(X, y)
+            if best['gain'] > 0:
+                left = self.build_tree(X=best['df_left'][:, : -1], y = best['df_left'][:, -1], depth = depth + 1)
+                right = self.build(X=best['df_right'][:, : -1], y = best['df_right'][:, -1], depth = depth + 1)
+                return Nodo (
+                    feature = columns[best['feature_index']],
+                    threshold=best['threshold'], 
+                    data_left=left, 
+                    data_right=right, 
+                    gain=best['gain']
+                )
+        return Nodo (
+            value=self.Counter(y)
+        )
+    
+    def Counter(self,dataframe):
+        frecuencia = dataframe[['blueWins']].value_counts()
+        return frecuencia.idxmax()
+
+
+    def best_split(self, X, y):
+        best_split = {}
+        best_info_gain = -1
+        n_rows, n_cols = X.shape
+
+
+        X = X.to_numpy()
+
+        for index in range(n_cols):
+            X_curr = X[:, index]
+
+            for threshold in np.unique(X_curr):
+                df = np.concatenate((X, y.reshape(1, -1).T), axis = 1)
+                # Crear la partición del dataset dependiendo del threshold
+                df_left = np.array([row for row in df if row[index] <= threshold])
+                df_right = np.array([row for row in df if row[index] > threshold])
+
+                if len(df_left) > 0 and len(df_right) > 0:
+                    # Obtener valor de la variable objetivo
+                    y = df[:, -1]
+                    y_left = df_left[:, -1]
+                    y_right = df_right[:, -1]
+
+                    gain = self.information_gain(y, y_right, y_left)
+                    if gain > best_info_gain:
+                        best_split = {
+                            "feature_index": index,
+                            "threshold": threshold,
+                            "df_left": df_left,
+                            "df_right": df_right,
+                            "gain": gain
+                        }
+                        best_info_gain = gain
+
+        return best_split
+
+    def information_gain(self, parent, right_child, left_child):
+        size_of_data = len(parent)
+        gain_right = ((len(right_child) / size_of_data) * self.gini_index(right_child))
+        gain_left = ((len(left_child) / size_of_data) * self.gini_index(left_child))
+        gain = self.gini_index(parent) - (gain_right + gain_left)
+
+    def gini_index(self, y):
+        classes = np.unique(y)
+        gini = 0
+        for label in classes:
+            probability_class = len(y[y == label]) / len(y)
+            gini += probability_class ** 2
+        
+        return 1 - gini
+
+    def fit(self, X, y):
+        self.root = self.build_tree(X, y)
+
+    def print_tree(self):
+        self.print_helper(self.root)
+
+    def print_helper(self, node):
+        if node.value != None:
+            return node.value, node.threshold
+
+        return 
+        
+
+        
