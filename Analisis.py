@@ -33,7 +33,7 @@ def data_cleaning():
     plt.xticks(rotation=45, ha='right')
     
     sns.heatmap(corr_matrix,cmap='coolwarm')
-    plt.show(block = True)
+    #plt.show(block = True)
     
     
     directa_prop = corr_matrix.mask((corr_matrix <= 0.75) | (corr_matrix >= 1))

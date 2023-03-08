@@ -3,21 +3,19 @@ from Nodo import Nodo
 
 class DecisionTree(object):
     def __init__(self, min_samples = 2, max_depth = 5):
-        self.min_samples = min_samples,
+        self.min_samples = min_samples
         self.max_depth = max_depth
         self.root = None
 
     def build_tree(self, X, y, depth = 0):
         n_rows, n_cols = X.shape
-        
-        columns = X.columns
         if n_rows >= self.min_samples and depth <= self.max_depth:
             best = self.best_split(X, y)
             if best['gain'] > 0:
                 left = self.build_tree(X=best['df_left'][:, : -1], y = best['df_left'][:, -1], depth = depth + 1)
-                right = self.build(X=best['df_right'][:, : -1], y = best['df_right'][:, -1], depth = depth + 1)
+                right = self.build_tree(X=best['df_right'][:, : -1], y = best['df_right'][:, -1], depth = depth + 1)
                 return Nodo (
-                    feature = columns[best['feature_index']],
+                    feature = best['feature_index'],
                     threshold=best['threshold'], 
                     data_left=left, 
                     data_right=right, 
@@ -27,9 +25,11 @@ class DecisionTree(object):
             value=self.Counter(y)
         )
     
-    def Counter(self,dataframe):
-        frecuencia = dataframe[['blueWins']].value_counts()
-        return frecuencia.idxmax()
+    def Counter(self, y):
+        y = y.astype('int64', casting='unsafe')
+        counts = np.bincount(y)
+        most_common_value = np.argmax(counts)
+        return most_common_value
 
 
     def best_split(self, X, y):
@@ -38,7 +38,8 @@ class DecisionTree(object):
         n_rows, n_cols = X.shape
 
 
-        X = X.to_numpy()
+        # X = X.to_numpy()
+        # y = y.to_numpy()
 
         for index in range(n_cols):
             X_curr = X[:, index]
@@ -73,6 +74,7 @@ class DecisionTree(object):
         gain_right = ((len(right_child) / size_of_data) * self.gini_index(right_child))
         gain_left = ((len(left_child) / size_of_data) * self.gini_index(left_child))
         gain = self.gini_index(parent) - (gain_right + gain_left)
+        return gain
 
     def gini_index(self, y):
         classes = np.unique(y)
@@ -84,16 +86,22 @@ class DecisionTree(object):
         return 1 - gini
 
     def fit(self, X, y):
+        # self.columns = X.columns
+
         self.root = self.build_tree(X, y)
 
-    def print_tree(self):
-        self.print_helper(self.root)
+    def predict_helper(self, x, tree):
+        if tree.value != None:
+            return tree.value
+        feature_value = x[tree.feature]
 
-    def print_helper(self, node):
-        if node.value != None:
-            return node.value, node.threshold
-
-        return 
+        if feature_value <= tree.threshold:
+            return self.predict_helper(x=x, tree=tree.data_left)
         
+        if feature_value > tree.threshold:
+            return self.predict_helper(x=x, tree=tree.data_right)
+        
+    def predict(self, X):
 
+        return [self.predict_helper(x, self.root) for x in X]
         
