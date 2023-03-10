@@ -14,15 +14,19 @@ class DecisionTree(object):
             if best['gain'] > 0:
                 left = self.build_tree(X=best['df_left'][:, : -1], y = best['df_left'][:, -1], depth = depth + 1)
                 right = self.build_tree(X=best['df_right'][:, : -1], y = best['df_right'][:, -1], depth = depth + 1)
+                children_depth = left.depth + right.depth
                 return Nodo (
                     feature = best['feature_index'],
                     threshold=best['threshold'], 
                     data_left=left, 
                     data_right=right, 
-                    gain=best['gain']
+                    gain=best['gain'],
+                    depth=children_depth,
+                    aux_value=self.Counter(y)
                 )
         return Nodo (
-            value=self.Counter(y)
+            value=self.Counter(y),
+            depth=1
         )
     
     def Counter(self, y):
@@ -67,32 +71,6 @@ class DecisionTree(object):
                     }
                     best_info_gain = gain
 
-
-            '''
-            for threshold in np.unique(X_curr):
-                df = np.concatenate((X, y.reshape(1, -1).T), axis = 1)
-                # Crear la partición del dataset dependiendo del threshold
-                df_left = np.array([row for row in df if row[index] <= threshold])
-                df_right = np.array([row for row in df if row[index] > threshold])
-
-                if len(df_left) > 0 and len(df_right) > 0:
-                    # Obtener valor de la variable objetivo
-                    y = df[:, -1]
-                    y_left = df_left[:, -1]
-                    y_right = df_right[:, -1]
-
-                    gain = self.information_gain(y, y_right, y_left)
-                    if gain > best_info_gain:
-                        best_split = {
-                            "feature_index": index,
-                            "threshold": threshold,
-                            "df_left": df_left,
-                            "df_right": df_right,
-                            "gain": gain
-                        }
-                        best_info_gain = gain
-            '''
-
         return best_split
 
     def information_gain(self, parent, right_child, left_child):
@@ -115,6 +93,7 @@ class DecisionTree(object):
         # self.columns = X.columns
 
         self.root = self.build_tree(X, y)
+        self.prune(self.root)
 
     def predict_helper(self, x, tree):
         if tree.value != None:
@@ -128,6 +107,26 @@ class DecisionTree(object):
             return self.predict_helper(x=x, tree=tree.data_right)
         
     def predict(self, X):
-
         return [self.predict_helper(x, self.root) for x in X]
+    
+    def prune(self, node):
+        if node.value == None and node:
+            right = node.data_right
+            left = node.data_left
+            self.prune(left)
+            self.prune(right)
+
+            if right:
+                if right.depth < int(0.5 * self.max_depth) and right.gain < 0.2:
+                    node.data_right = None
+                    print("pode")
+
+            if left:
+                if left.depth < int(0.5 * self.max_depth) and left.gain < 0.2:
+                    node.data_left = None
+                    print("pode")
+            
+            if not(node.data_right and node.data_left):
+                node.value = node.aux_value
+            
         
