@@ -6,6 +6,7 @@ class DecisionTree(object):
         self.min_samples = min_samples
         self.max_depth = max_depth
         self.root = None
+        self.gain_dicc = {}
 
     def build_tree(self, X, y, depth = 0):
         n_rows, n_cols = X.shape
@@ -90,9 +91,10 @@ class DecisionTree(object):
         return 1 - gini
 
     def fit(self, X, y):
+        self.dataframe = X
         # self.columns = X.columns
 
-        self.root = self.build_tree(X, y)
+        self.root = self.build_tree(X.to_numpy(), y.to_numpy())
         self.prune(self.root)
 
     def predict_helper(self, x, tree):
@@ -111,22 +113,44 @@ class DecisionTree(object):
     
     def prune(self, node):
         if node.value == None and node:
+            self.prune(node.data_left)
+            self.prune(node.data_right)
+            
             right = node.data_right
             left = node.data_left
-            self.prune(left)
-            self.prune(right)
 
-            if right:
-                if right.depth < int(0.5 * self.max_depth) and right.gain < 0.2:
+            if right and right.value == None:
+                if right.depth < int(0.2 * 2 ** self.max_depth) and right.gain < 0.005:
                     node.data_right = None
-                    print("pode")
 
-            if left:
-                if left.depth < int(0.5 * self.max_depth) and left.gain < 0.2:
+            if left and left.value == None:
+                if left.depth < int(0.2 *  2 ** self.max_depth) and left.gain < 0.005:
                     node.data_left = None
-                    print("pode")
             
             if not(node.data_right and node.data_left):
                 node.value = node.aux_value
+    
+    def top5(self):
+        self.BFS()
+        order_dicc = sorted(self.gain_dicc.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_5 = ""
+        for x in order_dicc:
+            top_5+=self.dataframe.columns[x[0]] + " "
+        
+        return top_5
+    
+    #BFS para imprimir el arbol
+    def BFS(self):
+        queue = []
+        queue.append(self.root)
+        while len(queue) > 0:
+            node = queue.pop(0)
+            if node.gain:
+                self.gain_dicc[node.feature] = node.gain
+            if node.data_left:
+                queue.append(node.data_left)
+            if node.data_right:
+                queue.append(node.data_right)
+    
             
         
