@@ -1,6 +1,6 @@
 import numpy as np
 from Nodo import Nodo
-
+from sklearn.metrics import accuracy_score
 class DecisionTree(object):
     def __init__(self, min_samples = 2, max_depth = 5):
         self.min_samples = min_samples
@@ -92,16 +92,19 @@ class DecisionTree(object):
 
     def fit(self, X, y):
         self.dataframe = X
-        # self.columns = X.columns
+        if type(X) is not np.ndarray:
+            X = X.to_numpy()
 
-        self.root = self.build_tree(X.to_numpy(), y.to_numpy())
+        if type(y) is not np.ndarray:
+            y = y.to_numpy()
+
+        self.root = self.build_tree(X, y)
         self.prune(self.root)
 
     def predict_helper(self, x, tree):
         if tree.value != None:
             return tree.value
         feature_value = x[tree.feature]
-
         if feature_value <= tree.threshold:
             return self.predict_helper(x=x, tree=tree.data_left)
         
@@ -109,6 +112,9 @@ class DecisionTree(object):
             return self.predict_helper(x=x, tree=tree.data_right)
         
     def predict(self, X):
+        if type(X) is not np.ndarray:
+            X = X.to_numpy()
+
         return [self.predict_helper(x, self.root) for x in X]
     
     def prune(self, node):
@@ -151,6 +157,18 @@ class DecisionTree(object):
                 queue.append(node.data_left)
             if node.data_right:
                 queue.append(node.data_right)
+                
+                
+    def score(self, X, y):
+        y_pred = self.predict(X)
+        return accuracy_score(y, y_pred)
+
+    def get_params(self, deep=True):
+        return {'max_depth': self.max_depth, 'min_samples': self.min_samples}
     
+    def set_params(self, **params):
+        for key, value in params.items():
+            setattr(self, key, value)
+        return self
             
         
