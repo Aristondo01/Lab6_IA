@@ -1,4 +1,5 @@
 # Importa las bibliotecas necesarias
+from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
@@ -109,3 +110,47 @@ for idx in caracteristicas_top5:
 mse = mean_squared_error(y_test, y_pred)
 # Imprime el error cuadrático medio
 print("El error cuadrático medio es:", mse)
+
+
+
+
+print('-------------Random forest-------------')
+rf = RandomForestClassifier()
+rf.fit(X_train, y_train)
+predict = rf.predict(X_test)
+mse = mean_squared_error(y_test, predict)
+print("El error cuadrático medio es:", mse)
+
+
+
+"""
+Preguntas:
+
+●Provea una métrica de desempeño:
+
+R: Dado que es una regresion el error cuadratico medio es la metrica de desempeño
+
+●¿Qué métrica usaron para seleccionar los features?
+
+R: Con respecto a los datos se busco solo realizar el encoding de variables y el escalado de las mismas.
+    Como por ejemplo el Value y Wage que se convirtieron a float y se escalaron ya que eran estrings con $ y K o M para denotar
+    el monto que se le estaba dando al jugador.Adicional a cada variable se verifico que fiera un numeor ya que muchas venian con
+    un poperador +/-. Por ejemplo: 41+2, 71-2, 21+3, etc. Se decidio tomar el primer numero y sumarle o restarle el segundo.
+
+●Especifique cuales son los features que mayor importancia tomaron en laconstrucción del árbol (top 5)
+
+R: Las 5 variables más significativas son: Value Age Overall CF SlidibngTackle
+    
+    
+●Si experimentan overfitting, ¿qué técnica usaron para minimizarlo?
+
+R: No experimentamos overfitting, el modelo mostro una precición aceptable de 0.87 esto debido 
+    que se hizo un buen tunning de los hiperparametros y se uso cross validation para validar el modelo.
+
+●Mencione, como comentario que variables tuvieron que hacer tunning y cualquier otra consideración extra
+que tuvieron que tomar en cuenta
+
+R: Las variables que se le tuvieron que hacer tunning fueron max_depth, min_samples_split, splitter y criterion.
+    Se decidio hacer tunning de estas variables ya que son las que mas afectan el modelo y se puede ver en la documentacion
+    de sklearn que estas variables son las que mas afectan el modelo.
+"""
