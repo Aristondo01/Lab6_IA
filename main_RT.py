@@ -1,13 +1,15 @@
 # Importa las bibliotecas necesarias
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 import pandas as pd
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
+from crosvalidation_DT import crosvalidation_DT
 
-df = pd.read_csv('fifa.csv',delimiter=";")
+
+df = pd.read_csv('fifa.csv', delimiter=";",low_memory=False)
 
 # Preprocessing
 df = df.drop(['ID', 'Name', 'Photo', 'Flag', 'Club Logo','Nationality','Club','Preferred Positions'], axis=1)
@@ -47,7 +49,8 @@ headers = df.columns.to_list()
 
 # Extraer el valor numérico de la columna "Agility"
 for h in headers:
-    cleanDF(df[h])
+    df[h] = df[h].apply(lambda x: int(x[:2]) + int(x[3:]) if len(str(x)) > 2 and str(x)[2] == '+' else int(x[:2]) - int(x[3:]) if len(str(x)) > 2 and str(x)[2] == '-' else x)
+
 
 
 # Divide los datos en conjuntos de entrenamiento y prueba
@@ -72,7 +75,7 @@ param_grid = {"criterion" : ["squared_error", "friedman_mse"],
 grid_search = GridSearchCV(modelito, param_grid, cv=5)
 grid_search.fit(X_val, y_val)
 
-print("Resultados de Crossvalidation:")
+print("\n\nResultados de Crossvalidation:")
 print("Mejores parametros: ", grid_search.best_params_)
 print("Mejor score: {:.2f}".format(grid_search.best_score_))
 
@@ -115,7 +118,24 @@ print("El error cuadrático medio es:", mse)
 
 
 print('-------------Random forest-------------')
-rf = RandomForestClassifier()
+rf = RandomForestRegressor()
+param_grid = {
+    'n_estimators': [100],
+    'max_depth': [2, 5, 7],
+    'min_samples_split': [2, 5, 7],
+    'min_samples_leaf': [2, 4],
+    'criterion' :['poisson', 'squared_error']
+}
+              
+grid_search =crosvalidation_DT(rf,y_val,X_val,param_grid)
+
+rf = RandomForestRegressor(
+    n_estimators=grid_search['n_estimators'],
+    max_depth=grid_search['max_depth'],
+    min_samples_split=grid_search['min_samples_split'],
+    min_samples_leaf=grid_search['min_samples_leaf'],
+    criterion=grid_search['criterion'])
+
 rf.fit(X_train, y_train)
 predict = rf.predict(X_test)
 mse = mean_squared_error(y_test, predict)

@@ -65,7 +65,7 @@ R: Con respecto a los datos se busco solo realizar el encoding de variables y el
 
 ### Especifique cuales son los features que mayor importancia tomaron en laconstrucción del árbol (top 5)
 
-R: Las 5 variables más significativas son: Value Age Overall CF SlidibngTackle
+R: Las 5 variables más significativas son: Value, Age, Overall, CF ,SlidibngTackle
     
     
 ### Si experimentan overfitting, ¿qué técnica usaron para minimizarlo?

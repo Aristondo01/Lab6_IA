@@ -70,12 +70,27 @@ print('Accuracy de modelo de sklearn:', accuracy_score(prediction, y_test.to_num
 
 
 print('-------------Random forest-------------')
+
 rf = RandomForestClassifier()
+param_grid = { 
+    'n_estimators': [50, 100],
+    'max_features': ['sqrt', 'log2'],
+    'max_depth' : [4,5,6],
+    'criterion' :['gini', 'entropy']
+}
+
+grid_serach = crosvalidation_DT(rf, y_validate, X_validate, param_grid)
+
+rf = RandomForestClassifier(
+    n_estimators=grid_serach['n_estimators'],
+    max_features=grid_serach['max_features'],
+    max_depth=grid_serach['max_depth'],
+    criterion=grid_serach['criterion']
+)
+
 rf.fit(X_train, y_train)
 predict = rf.predict(X_test)
 print("Random forest accuracy:", accuracy_score(predict, y_test))
-
-
 
 """
 Preguntas:
